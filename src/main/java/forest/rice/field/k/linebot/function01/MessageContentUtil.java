@@ -43,4 +43,11 @@ public class MessageContentUtil {
 		return (TextMessageContent) content;
 	}
 
+	public static LocationMessageContent getLocationMessageContent(MessageContent content) throws Exception {
+		if (!getMessageContentType(content).equals(MESSAGE_TYPE.LOCATION)) {
+			throw new Exception("content is not LocationMessageContent");
+		}
+		return (LocationMessageContent) content;
+	}
+
 }
