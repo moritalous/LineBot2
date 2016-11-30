@@ -51,4 +51,13 @@ public class EventUtil {
 		return (MessageEvent<MessageContent>) event;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static PostbackEvent getPostbackEvent(Event event) throws Exception {
+		if (!getEventType(event).equals(EVENT_TYPE.POSTBACK)) {
+			throw new Exception("event is not PostbackEvent");
+		}
+
+		return (PostbackEvent) event;
+	}
+
 }

@@ -76,25 +76,79 @@ public class ReplyMusicSearch implements Reply {
 			LineMessagingService client = LineMessagingServiceBuilder
 					.create(LineBotDynamoTriggerFunctionHandler.CHANNEL_ACCESS_TOKEN).build();
 
-			List<Message> messages = new ArrayList<>();
+			Response<BotApiResponse> response;
 
-			String previewUrl = result.getResults().get(0).getPreviewUrl();
-			previewUrl = previewUrl.replaceAll("http://audio.itunes.apple.com/",
-					"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/audio/");
+			switch (result.getResultCount()) {
+			case 0: {
+				TextMessage text = new TextMessage("見つかりませんでした。。");
+				response = client.replyMessage(new ReplyMessage(replyToken, text)).execute();
+			}
+				break;
+			// case 1: {
+			default: {
+				List<Message> messages = new ArrayList<>();
 
-			TextMessage text = new TextMessage(result.getResults().get(0).getTrackName());
-			AudioMessage audio = new AudioMessage(previewUrl, result.getResults().get(0).getTrackTimeMillis() / 10);
+				String previewUrl = result.getResults().get(0).getPreviewUrl();
+				previewUrl = previewUrl.replaceAll("http://audio.itunes.apple.com/",
+						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/audio/");
 
-			messages.add(text);
-			messages.add(audio);
+				TextMessage text = new TextMessage(result.getResults().get(0).getTrackName());
+				AudioMessage audio = new AudioMessage(previewUrl, result.getResults().get(0).getTrackTimeMillis() / 10);
 
-			Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages)).execute();
+				messages.add(text);
+				messages.add(audio);
+
+				response = client.replyMessage(new ReplyMessage(replyToken, messages)).execute();
+			}
+				break;
+			// default: {
+			// List<CarouselColumn> columns = new ArrayList<>();
+			//
+			// int loop = result.getResultCount() > 5 ? 5 :
+			// result.getResultCount();
+			// for (int i = 0; i < loop; i++) {
+			// Result target = result.getResults().get(i);
+			//
+			// List<Action> actions = new ArrayList<>();
+			// actions.add(new MessageAction("視聴する",
+			// target.getTrackName() + " - " + target.getArtistName() +
+			// "が聴きたい"));
+			// actions.add(new URIAction("iTunesで開く",
+			// target.getTrackViewUrl()));
+			// //
+			//
+			// String image = target.getArtworkUrl100();
+			// image = image.replace("http://is1.mzstatic.com/",
+			// "https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is1/");
+			// image = image.replace("http://is2.mzstatic.com/",
+			// "https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is2/");
+			// image = image.replace("http://is3.mzstatic.com/",
+			// "https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is3/");
+			// image = image.replace("http://is4.mzstatic.com/",
+			// "https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is4/");
+			// image = image.replace("http://is5.mzstatic.com/",
+			// "https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is5/");
+			//
+			// CarouselColumn column = new CarouselColumn(image,
+			// target.getTrackName() + " - " + target.getArtistName(),
+			// target.getArtistName(), actions);
+			// System.out.println(column.toString());
+			// columns.add(column);
+			// }
+			// TemplateMessage messages = new TemplateMessage("altText", new
+			// CarouselTemplate(columns));
+			// response = client.replyMessage(new ReplyMessage(replyToken,
+			// messages)).execute();
+			// }
+			// break;
+			}
 
 			if (response.isSuccessful()) {
 				System.out.println(response.body().getMessage());
 			} else {
 				System.out.println(response.errorBody().string());
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
