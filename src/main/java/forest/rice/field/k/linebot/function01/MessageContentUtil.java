@@ -50,4 +50,11 @@ public class MessageContentUtil {
 		return (LocationMessageContent) content;
 	}
 
+	public static ImageMessageContent getImageMessageContent(MessageContent content) throws Exception {
+		if (!getMessageContentType(content).equals(MESSAGE_TYPE.IMAGE)) {
+			throw new Exception("content is not ImageMessageContent");
+		}
+		return (ImageMessageContent) content;
+	}
+
 }
