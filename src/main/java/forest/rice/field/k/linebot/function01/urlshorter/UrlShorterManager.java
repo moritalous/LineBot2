@@ -17,7 +17,7 @@ public class UrlShorterManager {
 
 	private static final String api_key = System.getenv("GOOGLE_API_SHORTER_KEY");
 
-	private static final String request_body = "{\"longUrl\": \"%s/\"}";
+	private static final String request_body = "{\"longUrl\": \"%s\"}";
 
 	//
 	public UrlShorter getUrlShorter(String longUrl) {
