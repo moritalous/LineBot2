@@ -18,6 +18,7 @@ import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.action.Action;
+import com.linecorp.bot.model.action.MessageAction;
 import com.linecorp.bot.model.action.URIAction;
 import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
@@ -35,6 +36,7 @@ import forest.rice.field.k.linebot.function01.MessageContentUtil;
 import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
 import forest.rice.field.k.linebot.function01.urlshorter.UrlShorter;
 import forest.rice.field.k.linebot.function01.urlshorter.UrlShorterManager;
+import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -84,9 +86,10 @@ public class ReplyImage implements Reply {
 			Call<ResponseBody> messageContent = client.getMessageContent(content.getId());
 			Response<ResponseBody> responseBody = messageContent.execute();
 			ResponseBody body = responseBody.body();
+			MediaType contentType = responseBody.body().contentType();
 
 			// S3に上げる
-			putS3(body.byteStream(), content.getId());
+			putS3(body.byteStream(), content.getId(), contentType);
 
 			String objectPath = String.format("https://s3-ap-northeast-1.amazonaws.com/moritalous-001/%s",
 					content.getId());
@@ -104,11 +107,12 @@ public class ReplyImage implements Reply {
 				List<Action> actions = new ArrayList<>();
 				actions.add(new URIAction("画像を表示", objectPath));
 				actions.add(new URIAction("QRコードを表示", image));
+				actions.add(new MessageAction("短縮URLを表示", urlShorter.getId()));
 
-				CarouselColumn column = new CarouselColumn(null, "作成しました。", urlShorter.getId(), actions);
+				CarouselColumn column = new CarouselColumn(null, "画像を保管しました。", "ファイルは約一日後に削除されます。", actions);
 				columns.add(column);
 
-				TemplateMessage messages = new TemplateMessage("QRコード", new CarouselTemplate(columns));
+				TemplateMessage messages = new TemplateMessage("画像を保管しました。", new CarouselTemplate(columns));
 
 				Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages))
 						.execute();
@@ -121,21 +125,22 @@ public class ReplyImage implements Reply {
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private void putS3(InputStream inputStream, String keyName) {
+	private void putS3(InputStream inputStream, String keyName, MediaType contentType) {
 		String bucketName = S3_BUCKET_NAME;
 		AmazonS3 s3client = new AmazonS3Client(new BasicAWSCredentials(S3_ACCESS_KEY, S3_SECRET_KEY));
 
 		AccessControlList acl = new AccessControlList();
 		acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
 
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentType(contentType.toString());
+
 		PutObjectResult result = s3client
-				.putObject(new PutObjectRequest(bucketName, keyName, inputStream, new ObjectMetadata())
-						.withAccessControlList(acl));
+				.putObject(new PutObjectRequest(bucketName, keyName, inputStream, metadata).withAccessControlList(acl));
 		System.out.println(result.toString());
 	}
 
