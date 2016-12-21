@@ -17,16 +17,13 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.model.ReplyMessage;
-import com.linecorp.bot.model.action.Action;
-import com.linecorp.bot.model.action.MessageAction;
-import com.linecorp.bot.model.action.URIAction;
 import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.ImageMessageContent;
 import com.linecorp.bot.model.event.message.MessageContent;
-import com.linecorp.bot.model.message.TemplateMessage;
-import com.linecorp.bot.model.message.template.CarouselColumn;
-import com.linecorp.bot.model.message.template.CarouselTemplate;
+import com.linecorp.bot.model.message.ImageMessage;
+import com.linecorp.bot.model.message.Message;
+import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.response.BotApiResponse;
 
 import forest.rice.field.k.linebot.function01.EventUtil;
@@ -99,20 +96,27 @@ public class ReplyImage implements Reply {
 			UrlShorter urlShorter = urlShorterManager.getUrlShorter(objectPath);
 
 			{
-
-				List<CarouselColumn> columns = new ArrayList<>();
-
 				String image = String.format("%s%s", urlShorter.getId(), ".qr");
 
-				List<Action> actions = new ArrayList<>();
-				actions.add(new URIAction("画像を表示", objectPath));
-				actions.add(new URIAction("QRコードを表示", image));
-				actions.add(new MessageAction("短縮URLを表示", urlShorter.getId()));
+				// List<CarouselColumn> columns = new ArrayList<>();
+				// List<Action> actions = new ArrayList<>();
+				// actions.add(new URIAction("画像を表示", objectPath));
+				// // actions.add(new URIAction("QRコードを表示", image));
+				// actions.add(new MessageAction("短縮URLを表示",
+				// urlShorter.getId()));
+				//
+				// CarouselColumn column = new CarouselColumn(null,
+				// "画像を保管しました。", "ファイルは約一日後に削除されます。", actions);
+				// columns.add(column);
+				//
+				// TemplateMessage templateMessage = new
+				// TemplateMessage("画像を保管しました。", new CarouselTemplate(columns));
 
-				CarouselColumn column = new CarouselColumn(null, "画像を保管しました。", "ファイルは約一日後に削除されます。", actions);
-				columns.add(column);
-
-				TemplateMessage messages = new TemplateMessage("画像を保管しました。", new CarouselTemplate(columns));
+				List<Message> messages = new ArrayList<>();
+				// messages.add(templateMessage);
+				messages.add(new TextMessage("画像を保管しました。\r\nファイルは約一日後に削除されます。"));
+				messages.add(new ImageMessage(image, image));
+				messages.add(new TextMessage(urlShorter.getId()));
 
 				Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages))
 						.execute();

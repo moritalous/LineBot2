@@ -63,6 +63,33 @@ public class ReplyEcho implements Reply {
 			} else {
 				System.out.println(response.errorBody().string());
 			}
+
+			// try {
+			// AmazonPolly pollyClient =
+			// AmazonPollyClientBuilder.defaultClient();
+			//
+			// SynthesizeSpeechRequest request = new SynthesizeSpeechRequest();
+			// request.setOutputFormat(OutputFormat.Mp3);
+			// request.setSampleRate("22050");
+			// request.setText(this.content.getText());
+			// request.setVoiceId(VoiceId.Mizuki);
+			//
+			// SynthesizeSpeechResult result =
+			// pollyClient.synthesizeSpeech(request);
+			// InputStream stream = result.getAudioStream();
+			//
+			// System.out.println(result.toString());
+			//
+			// AmazonS3 s3client = new AmazonS3Client(new
+			// ProfileCredentialsProvider());
+			// PutObjectResult putResult = s3client.putObject("moritalous-001",
+			// "audio.mp3", stream,
+			// new ObjectMetadata());
+			//
+			// System.out.println(putResult.toString());
+			// } catch (Exception e) {
+			// e.printStackTrace();
+			// }
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
