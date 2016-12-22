@@ -44,6 +44,7 @@ public class ReplyImage implements Reply {
 	private static final String S3_SECRET_KEY = System.getenv("S3_SECRET_KEY");
 
 	private static final String S3_BUCKET_NAME = System.getenv("S3_BUCKET_NAME");
+	private static final String S3_RESION = System.getenv("S3_RESION");
 
 	private MessageEvent<MessageContent> event;
 	private ImageMessageContent content;
@@ -88,7 +89,7 @@ public class ReplyImage implements Reply {
 			// S3に上げる
 			putS3(body.byteStream(), content.getId(), contentType);
 
-			String objectPath = String.format("https://s3-ap-northeast-1.amazonaws.com/moritalous-001/%s",
+			String objectPath = String.format("https://%s.amazonaws.com/%s/%s", S3_RESION, S3_BUCKET_NAME,
 					content.getId());
 
 			// QRコードを返す
@@ -146,6 +147,11 @@ public class ReplyImage implements Reply {
 		PutObjectResult result = s3client
 				.putObject(new PutObjectRequest(bucketName, keyName, inputStream, metadata).withAccessControlList(acl));
 		System.out.println(result.toString());
+	}
+
+	@Override
+	public String help() {
+		return "画像を送信→QRコードで共有";
 	}
 
 }

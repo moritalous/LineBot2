@@ -1,6 +1,6 @@
 package forest.rice.field.k.linebot.function01.reply;
 
-import java.io.IOException;
+import java.util.List;
 
 import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
@@ -19,7 +19,7 @@ import forest.rice.field.k.linebot.function01.MessageContentUtil;
 import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
 import retrofit2.Response;
 
-public class ReplyEcho implements Reply {
+public class ReplyHelp implements Reply {
 
 	private MessageEvent<MessageContent> event;
 	private TextMessageContent content;
@@ -37,8 +37,11 @@ public class ReplyEcho implements Reply {
 				return false;
 			}
 			content = MessageContentUtil.getTextMessageContent(this.event.getMessage());
+			if (content.getText().contains("#ヘルプ")) {
+				return true;
+			}
 
-			return true;
+			return false;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -49,49 +52,24 @@ public class ReplyEcho implements Reply {
 
 	@Override
 	public void execute() {
-
 		try {
 			String replyToken = this.event.getReplyToken();
 			LineMessagingService client = LineMessagingServiceBuilder
 					.create(LineBotDynamoTriggerFunctionHandler.CHANNEL_ACCESS_TOKEN).build();
 
+			List<String> help = ReplyManager.help();
+			StringBuilder sb = new StringBuilder();
+			help.stream().forEach(s -> sb.append(s).append("\r\n"));
+
 			Response<BotApiResponse> response = client
-					.replyMessage(new ReplyMessage(replyToken, new TextMessage(this.content.getText()))).execute();
+					.replyMessage(new ReplyMessage(replyToken, new TextMessage(sb.toString()))).execute();
 
 			if (response.isSuccessful()) {
 				System.out.println(response.body().getMessage());
 			} else {
 				System.out.println(response.errorBody().string());
 			}
-
-			// try {
-			// AmazonPolly pollyClient =
-			// AmazonPollyClientBuilder.defaultClient();
-			//
-			// SynthesizeSpeechRequest request = new SynthesizeSpeechRequest();
-			// request.setOutputFormat(OutputFormat.Mp3);
-			// request.setSampleRate("22050");
-			// request.setText(this.content.getText());
-			// request.setVoiceId(VoiceId.Mizuki);
-			//
-			// SynthesizeSpeechResult result =
-			// pollyClient.synthesizeSpeech(request);
-			// InputStream stream = result.getAudioStream();
-			//
-			// System.out.println(result.toString());
-			//
-			// AmazonS3 s3client = new AmazonS3Client(new
-			// ProfileCredentialsProvider());
-			// PutObjectResult putResult = s3client.putObject("moritalous-001",
-			// "audio.mp3", stream,
-			// new ObjectMetadata());
-			//
-			// System.out.println(putResult.toString());
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -99,7 +77,7 @@ public class ReplyEcho implements Reply {
 
 	@Override
 	public String help() {
-		return "その他のテキスト→オウム返しします。";
+		return null;
 	}
 
 }

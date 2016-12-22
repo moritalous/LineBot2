@@ -27,6 +27,8 @@ import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
 import forest.rice.field.k.linebot.function01.itunes.ItunesMusicManager;
 import forest.rice.field.k.linebot.function01.itunes.topchart.Entry;
 import forest.rice.field.k.linebot.function01.itunes.topchart.Music;
+import forest.rice.field.k.linebot.function01.urlshorter.UrlShorter;
+import forest.rice.field.k.linebot.function01.urlshorter.UrlShorterManager;
 import retrofit2.Response;
 
 public class ReplyRanking implements Reply {
@@ -88,27 +90,18 @@ public class ReplyRanking implements Reply {
 				List<Action> actions = new ArrayList<>();
 				actions.add(new MessageAction("視聴する", entry.getTitle().getLabel() + "が聴きたい"));
 				actions.add(new URIAction("iTunesで開く", entry.getLink().get(0).getAttributes().getHref()));
-				//
 
 				String image = entry.getImImage().get(2).getLabel();
-				image = image.replace("http://is1.mzstatic.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is1/");
-				image = image.replace("http://is2.mzstatic.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is2/");
-				image = image.replace("http://is3.mzstatic.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is3/");
-				image = image.replace("http://is4.mzstatic.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is4/");
-				image = image.replace("http://is5.mzstatic.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/is5/");
+				UrlShorterManager shorterManager = new UrlShorterManager();
+				UrlShorter imageUrlShorter = shorterManager.getUrlShorter(image);
 
-				CarouselColumn column = new CarouselColumn(image, entry.getTitle().getLabel(),
+				CarouselColumn column = new CarouselColumn(imageUrlShorter.getId(), entry.getTitle().getLabel(),
 						entry.getImArtist().getLabel(), actions);
 				System.out.println(column.toString());
 				columns.add(column);
 			}
 
-			TemplateMessage messages = new TemplateMessage("altText", new CarouselTemplate(columns));
+			TemplateMessage messages = new TemplateMessage("ランキング", new CarouselTemplate(columns));
 
 			Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages)).execute();
 
@@ -119,9 +112,13 @@ public class ReplyRanking implements Reply {
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public String help() {
+		return "ランキング→ランキングを表示";
 	}
 
 }
