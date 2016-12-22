@@ -141,4 +141,9 @@ public class ReplyGo implements Reply {
 		return sb.toString();
 	}
 
+	@Override
+	public String help() {
+		return "位置情報を送信→Go!";
+	}
+
 }

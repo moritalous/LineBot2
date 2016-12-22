@@ -11,6 +11,7 @@ import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.MessageContent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
 import com.linecorp.bot.model.message.AudioMessage;
+import com.linecorp.bot.model.message.ImageMessage;
 import com.linecorp.bot.model.message.Message;
 import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.response.BotApiResponse;
@@ -22,6 +23,8 @@ import forest.rice.field.k.linebot.function01.MessageContentUtil;
 import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
 import forest.rice.field.k.linebot.function01.itunes.ItunesTrackSearchManager;
 import forest.rice.field.k.linebot.function01.itunes.tracksearch.SearchResult;
+import forest.rice.field.k.linebot.function01.urlshorter.UrlShorter;
+import forest.rice.field.k.linebot.function01.urlshorter.UrlShorterManager;
 import retrofit2.Response;
 
 public class ReplyMusicSearch implements Reply {
@@ -89,12 +92,19 @@ public class ReplyMusicSearch implements Reply {
 				List<Message> messages = new ArrayList<>();
 
 				String previewUrl = result.getResults().get(0).getPreviewUrl();
-				previewUrl = previewUrl.replaceAll("http://audio.itunes.apple.com/",
-						"https://714oxhgy3c.execute-api.ap-northeast-1.amazonaws.com/prod/audio/");
 
-				TextMessage text = new TextMessage(result.getResults().get(0).getTrackName());
-				AudioMessage audio = new AudioMessage(previewUrl, result.getResults().get(0).getTrackTimeMillis() / 10);
+				UrlShorterManager urlShorterManager = new UrlShorterManager();
+				UrlShorter previewUrlShorter = urlShorterManager.getUrlShorter(previewUrl);
+				UrlShorter artworkUrlShorter = urlShorterManager
+						.getUrlShorter(result.getResults().get(0).getArtworkUrl100());
 
+				TextMessage text = new TextMessage(String.format("%s / %s", result.getResults().get(0).getTrackName(),
+						result.getResults().get(0).getArtistName()));
+				ImageMessage image = new ImageMessage(artworkUrlShorter.getId(), artworkUrlShorter.getId());
+				AudioMessage audio = new AudioMessage(previewUrlShorter.getId(),
+						result.getResults().get(0).getTrackTimeMillis() / 10);
+
+				messages.add(image);
 				messages.add(text);
 				messages.add(audio);
 
@@ -153,6 +163,11 @@ public class ReplyMusicSearch implements Reply {
 			e.printStackTrace();
 		}
 
+	}
+
+	@Override
+	public String help() {
+		return "???が聴きたい→視聴します";
 	}
 
 }

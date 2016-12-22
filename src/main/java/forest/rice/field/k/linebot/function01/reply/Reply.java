@@ -8,4 +8,6 @@ public interface Reply {
 
 	public void execute();
 
+	public String help();
+
 }

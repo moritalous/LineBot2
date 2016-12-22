@@ -29,8 +29,8 @@ public class UrlShorterManagerTest {
 
 	@Test
 	public void test() {
-		UrlShorter result = target.getUrlShorter("https://www.google.com");
-		System.out.println(result.toString());
+		// UrlShorter result = target.getUrlShorter("https://www.google.com");
+		// System.out.println(result.toString());
 	}
 
 }

@@ -88,4 +88,9 @@ public class ReplyGoPostback implements Reply {
 		return map;
 	}
 
+	@Override
+	public String help() {
+		return null;
+	}
+
 }
