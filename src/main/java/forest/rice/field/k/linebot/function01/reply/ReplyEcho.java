@@ -1,6 +1,9 @@
 package forest.rice.field.k.linebot.function01.reply;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
@@ -9,6 +12,8 @@ import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.MessageContent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
+import com.linecorp.bot.model.message.AudioMessage;
+import com.linecorp.bot.model.message.Message;
 import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.response.BotApiResponse;
 
@@ -17,6 +22,7 @@ import forest.rice.field.k.linebot.function01.EventUtil.EVENT_TYPE;
 import forest.rice.field.k.linebot.function01.LineBotDynamoTriggerFunctionHandler;
 import forest.rice.field.k.linebot.function01.MessageContentUtil;
 import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
+import forest.rice.field.k.linebot.function01.aws.AwsUtil;
 import retrofit2.Response;
 
 public class ReplyEcho implements Reply {
@@ -55,8 +61,14 @@ public class ReplyEcho implements Reply {
 			LineMessagingService client = LineMessagingServiceBuilder
 					.create(LineBotDynamoTriggerFunctionHandler.CHANNEL_ACCESS_TOKEN).build();
 
-			Response<BotApiResponse> response = client
-					.replyMessage(new ReplyMessage(replyToken, new TextMessage(this.content.getText()))).execute();
+			String filename = "Polly-" + UUID.randomUUID();
+			String audioUrl = AwsUtil.createAudioAndGetS3FilePath(this.content.getText(), filename);
+
+			List<Message> messages = new ArrayList<>();
+			messages.add(new TextMessage(this.content.getText()));
+			messages.add(new AudioMessage(audioUrl, 10000));
+
+			Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages)).execute();
 
 			if (response.isSuccessful()) {
 				System.out.println(response.body().getMessage());
@@ -64,32 +76,6 @@ public class ReplyEcho implements Reply {
 				System.out.println(response.errorBody().string());
 			}
 
-			// try {
-			// AmazonPolly pollyClient =
-			// AmazonPollyClientBuilder.defaultClient();
-			//
-			// SynthesizeSpeechRequest request = new SynthesizeSpeechRequest();
-			// request.setOutputFormat(OutputFormat.Mp3);
-			// request.setSampleRate("22050");
-			// request.setText(this.content.getText());
-			// request.setVoiceId(VoiceId.Mizuki);
-			//
-			// SynthesizeSpeechResult result =
-			// pollyClient.synthesizeSpeech(request);
-			// InputStream stream = result.getAudioStream();
-			//
-			// System.out.println(result.toString());
-			//
-			// AmazonS3 s3client = new AmazonS3Client(new
-			// ProfileCredentialsProvider());
-			// PutObjectResult putResult = s3client.putObject("moritalous-001",
-			// "audio.mp3", stream,
-			// new ObjectMetadata());
-			//
-			// System.out.println(putResult.toString());
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
