@@ -11,7 +11,8 @@ public class ReplyManager {
 
 	@SuppressWarnings("unchecked")
 	private static Class<? extends Reply>[] classArray = new Class[] { ReplyRanking.class, ReplyMusicSearch.class,
-			ReplyGo.class, ReplyGoPostback.class, ReplyImage.class, ReplyHelp.class, ReplyEcho.class };
+			ReplyGo.class, ReplyGoPostback.class, ReplyImage.class, ReplyHelp.class, ReplyBeybladeChamp.class,
+			ReplyEcho.class };
 
 	public static Reply getReply(Event event) {
 		return Arrays.asList(classArray).stream().map(clazz -> {
