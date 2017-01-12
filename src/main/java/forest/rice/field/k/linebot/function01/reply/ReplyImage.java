@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.services.rekognition.model.S3Object;
 import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.model.ReplyMessage;
@@ -80,6 +81,10 @@ public class ReplyImage implements Reply {
 			UrlShorterManager urlShorterManager = new UrlShorterManager();
 			UrlShorter urlShorter = urlShorterManager.getUrlShorter(objectPath);
 
+			// Rekognition
+			S3Object target = AwsUtil.createS3Object(content.getId());
+			float similarity = AwsUtil.compareFaces(target);
+
 			{
 				String image = String.format("%s%s", urlShorter.getId(), ".qr");
 
@@ -87,6 +92,7 @@ public class ReplyImage implements Reply {
 				messages.add(new TextMessage("画像を保管しました。\r\nファイルは約一日後に削除されます。"));
 				messages.add(new ImageMessage(image, image));
 				messages.add(new TextMessage(urlShorter.getId()));
+				messages.add(new TextMessage(String.format("%.1f%%一致", similarity)));
 
 				Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages))
 						.execute();
