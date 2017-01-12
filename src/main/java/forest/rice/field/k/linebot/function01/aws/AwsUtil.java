@@ -107,23 +107,28 @@ public class AwsUtil {
 	}
 
 	private static float compareFaces(S3Object source, S3Object target) {
-		AWSCredentials rekognitionCred = new BasicAWSCredentials(REKOGNITION_ACCESS_KEY, REKOGNITION_SECRET_KEY);
-		AWSCredentialsProvider cp = new AWSStaticCredentialsProvider(rekognitionCred);
+		try {
+			AWSCredentials rekognitionCred = new BasicAWSCredentials(REKOGNITION_ACCESS_KEY, REKOGNITION_SECRET_KEY);
+			AWSCredentialsProvider cp = new AWSStaticCredentialsProvider(rekognitionCred);
 
-		CompareFacesRequest request = new CompareFacesRequest();
+			CompareFacesRequest request = new CompareFacesRequest();
 
-		request.withSourceImage(new Image().withS3Object(source)).withTargetImage(new Image().withS3Object(target))
-				.withSimilarityThreshold(0.0f);
+			request.withSourceImage(new Image().withS3Object(source)).withTargetImage(new Image().withS3Object(target))
+					.withSimilarityThreshold(0.0f);
 
-		AmazonRekognition client = AmazonRekognitionClientBuilder.standard().withRegion(Regions.US_EAST_1)
-				.withCredentials(cp).build();
-		CompareFacesResult result = client.compareFaces(request);
+			AmazonRekognition client = AmazonRekognitionClientBuilder.standard().withRegion(Regions.US_EAST_1)
+					.withCredentials(cp).build();
+			CompareFacesResult result = client.compareFaces(request);
 
-		if (result.getFaceMatches().size() == 0) {
-			return 0.0f;
-		} else {
-			return result.getFaceMatches().get(0).getSimilarity();
+			if (result.getFaceMatches().size() == 0) {
+				return 0.0f;
+			} else {
+				return result.getFaceMatches().get(0).getSimilarity();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		return -1.0f;
 
 	}
 
