@@ -13,6 +13,12 @@ import com.amazonaws.services.polly.model.OutputFormat;
 import com.amazonaws.services.polly.model.SynthesizeSpeechRequest;
 import com.amazonaws.services.polly.model.SynthesizeSpeechResult;
 import com.amazonaws.services.polly.model.VoiceId;
+import com.amazonaws.services.rekognition.AmazonRekognition;
+import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
+import com.amazonaws.services.rekognition.model.CompareFacesRequest;
+import com.amazonaws.services.rekognition.model.CompareFacesResult;
+import com.amazonaws.services.rekognition.model.Image;
+import com.amazonaws.services.rekognition.model.S3Object;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
@@ -34,6 +40,12 @@ public class AwsUtil {
 
 	private static final String POLLY_ACCESS_KEY = System.getenv("POLLY_ACCESS_KEY");
 	private static final String POLLY_SECRET_KEY = System.getenv("POLLY_SECRET_KEY");
+
+	private static final String REKOGNITION_ACCESS_KEY = System.getenv("REKOGNITION_ACCESS_KEY");
+	private static final String REKOGNITION_SECRET_KEY = System.getenv("REKOGNITION_SECRET_KEY");
+
+	private static final String REKOGNITION_S3_BUCKET = System.getenv("REKOGNITION_S3_BUCKET");
+	private static final String REKOGNITION_S3_NAME = System.getenv("REKOGNITION_S3_NAME");
 
 	public static void putS3(InputStream inputStream, String keyName, MediaType contentType) {
 		String bucketName = S3_BUCKET_NAME;
@@ -75,6 +87,43 @@ public class AwsUtil {
 
 		SynthesizeSpeechResult result = pollyClient.synthesizeSpeech(request);
 		return result.getAudioStream();
+
+	}
+
+	private static S3Object createS3Object(String bucket, String name) {
+		return new S3Object().withBucket(bucket).withName(name);
+	}
+
+	public static S3Object createS3Object(String name) {
+		return new S3Object().withBucket(S3_BUCKET_NAME).withName(name);
+	}
+
+	private static S3Object createRekognitionSource() {
+		return createS3Object(REKOGNITION_S3_BUCKET, REKOGNITION_S3_NAME);
+	}
+
+	public static float compareFaces(S3Object target) {
+		return compareFaces(createRekognitionSource(), target);
+	}
+
+	private static float compareFaces(S3Object source, S3Object target) {
+		AWSCredentials rekognitionCred = new BasicAWSCredentials(REKOGNITION_ACCESS_KEY, REKOGNITION_SECRET_KEY);
+		AWSCredentialsProvider cp = new AWSStaticCredentialsProvider(rekognitionCred);
+
+		CompareFacesRequest request = new CompareFacesRequest();
+
+		request.withSourceImage(new Image().withS3Object(source)).withTargetImage(new Image().withS3Object(target))
+				.withSimilarityThreshold(0.0f);
+
+		AmazonRekognition client = AmazonRekognitionClientBuilder.standard().withRegion(Regions.US_EAST_1)
+				.withCredentials(cp).build();
+		CompareFacesResult result = client.compareFaces(request);
+
+		if (result.getFaceMatches().size() == 0) {
+			return 0.0f;
+		} else {
+			return result.getFaceMatches().get(0).getSimilarity();
+		}
 
 	}
 
