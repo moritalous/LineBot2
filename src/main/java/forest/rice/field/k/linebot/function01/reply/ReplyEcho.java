@@ -23,6 +23,8 @@ import forest.rice.field.k.linebot.function01.LineBotDynamoTriggerFunctionHandle
 import forest.rice.field.k.linebot.function01.MessageContentUtil;
 import forest.rice.field.k.linebot.function01.MessageContentUtil.MESSAGE_TYPE;
 import forest.rice.field.k.linebot.function01.aws.AwsUtil;
+import forest.rice.field.k.linebot.function01.docomo.dialogue.DialogueManager;
+import forest.rice.field.k.linebot.function01.docomo.dialogue.DialogueResponse;
 import retrofit2.Response;
 
 public class ReplyEcho implements Reply {
@@ -61,12 +63,16 @@ public class ReplyEcho implements Reply {
 			LineMessagingService client = LineMessagingServiceBuilder
 					.create(LineBotDynamoTriggerFunctionHandler.CHANNEL_ACCESS_TOKEN).build();
 
+			DialogueManager dialogueManager = new DialogueManager();
+			DialogueResponse dialogueResponse = dialogueManager.getResponse(this.content.getText());
+
 			String filename = "Polly-" + UUID.randomUUID();
-			String audioUrl = AwsUtil.createAudioAndGetS3FilePath(this.content.getText(), filename);
+			String audioUrl = AwsUtil.createAudioAndGetS3FilePath(dialogueResponse.utt, filename);
 
 			List<Message> messages = new ArrayList<>();
-			messages.add(new TextMessage(this.content.getText()));
+			// messages.add(new TextMessage(this.content.getText()));
 			messages.add(new AudioMessage(audioUrl, 10000));
+			messages.add(new TextMessage(dialogueResponse.utt));
 
 			Response<BotApiResponse> response = client.replyMessage(new ReplyMessage(replyToken, messages)).execute();
 
