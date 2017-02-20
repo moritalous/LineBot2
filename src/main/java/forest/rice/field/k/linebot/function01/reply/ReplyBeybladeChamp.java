@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.model.ReplyMessage;
+import com.linecorp.bot.model.action.Action;
+import com.linecorp.bot.model.action.URIAction;
 import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.MessageContent;
@@ -86,7 +88,10 @@ public class ReplyBeybladeChamp implements Reply {
 
 						System.out.println(String.format("%s %s", title, text));
 
-						CarouselColumn column = new CarouselColumn(null, title, text, null);
+						List<Action> actions = new ArrayList<>();
+						actions.add(new URIAction("公式サイト", "https://beyblade.takaratomy.co.jp/champ_g4"));
+
+						CarouselColumn column = new CarouselColumn(null, title, text, actions);
 						columns.add(column);
 						if (columns.size() == 5) {
 							TemplateMessage message = new TemplateMessage("ベイブレード大会情報", new CarouselTemplate(columns));
